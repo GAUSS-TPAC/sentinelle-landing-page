@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="fr" data-lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinelle — Intelligence causale des réclamations</title>
+<meta name="description" content="Sentinelle lit les réclamations bancaires en langue ordinaire, remonte à la cause, relie les tickets entre eux et produit le rapport de conformité exigé en zone CEMAC.">
+<meta name="theme-color" content="#131F38">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sentinelle — Intelligence causale des réclamations">
+<meta property="og:description" content="Moteur d'intelligence causale pour le traitement des réclamations financières en zone CEMAC.">
+<meta property="og:locale" content="fr_FR">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23131F38'/%3E%3Crect x='7' y='6' width='18' height='2.5' fill='%23C9784A'/%3E%3Crect x='7' y='12' width='18' height='2.5' fill='%239AA7BF'/%3E%3Crect x='7' y='18' width='11' height='2.5' fill='%239AA7BF'/%3E%3Crect x='7' y='24' width='18' height='2.5' fill='%23C9784A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Faustina:ital,wght@0,400..700;1,400..600&family=IBM+Plex+Sans:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap">
+<style>
+/* ============================================================
+   SENTINELLE — jeton de design
+   Un seul univers visuel, assumé : encre dominante, papier froid
+   pour la matière documentaire. Aucune couleur n'est déclarée
+   hors des jetons ci-dessous.
+   ============================================================ */
+:root{
+  --encre:#131F38;
+  --marine:#1B2A4A;
+  --marine-clair:#223351;
+  --papier:#E9ECF1;
+  --papier-pur:#F1F4F8;
+  --ardoise:#9AA7BF;
+  --terracotta:#C9784A;
+  --terracotta-clair:#E09166;
+  --terracotta-encre:#9A5228;
+  --sauge:#6E9080;
+  --sauge-encre:#40695A;
+
+  /* rôles — surchargés par bande */
+  --bg:var(--encre);
+  --texte:var(--papier);
+  --texte-2:var(--ardoise);
+  --surface:var(--marine);
+  --surface-2:var(--marine-clair);
+  --filet:rgba(154,167,191,.22);
+  --filet-fort:rgba(154,167,191,.40);
+  --accent:var(--terracotta);
+  --accent-texte:var(--terracotta-clair);
+  --semantique:var(--sauge);
+
+  --wrap:1180px;
+  --r:2px;
+  --pas:clamp(88px,11vw,146px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--encre);
+  color:var(--papier);
+  font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.65;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+/* ---------- bascule de langue ---------- */
+html[data-lang="fr"] .en,
+html[data-lang="en"] .fr{display:none}
+
+/* ---------- primitives ---------- */
+.wrap{width:min(var(--wrap),100% - clamp(28px,7vw,84px));margin-inline:auto}
+.band{background:var(--bg);color:var(--texte);padding-block:var(--pas)}
+.band--papier{
+  --bg:var(--papier-pur);
+  --texte:var(--encre);
+  --texte-2:#55637F;
+  --surface:#FFFFFF;
+  --surface-2:#E5E9F0;
+  --filet:rgba(19,31,56,.14);
+  --filet-fort:rgba(19,31,56,.28);
+  --accent-texte:var(--terracotta-encre);
+  --semantique:var(--sauge-encre);
+}
+.band--serre{padding-block:clamp(60px,7vw,92px)}
+.band--suite{padding-block-start:0}
+
+h1,h2,h3{font-family:Faustina,"Iowan Old Style",Georgia,serif;font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.012em}
+h1{font-size:clamp(37px,5.3vw,61px);line-height:1.05}
+h2{font-size:clamp(27px,3.5vw,41px);line-height:1.14}
+h3{font-size:clamp(20px,2.1vw,23px);line-height:1.28}
+p{margin:0}
+a{color:inherit}
+
+.mono{
+  font-family:"Martian Mono","IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:400;letter-spacing:.09em;
+  text-transform:uppercase;line-height:1.5;
+  font-variant-numeric:tabular-nums;
+}
+.mono--n{text-transform:none;letter-spacing:.04em}
+.txt-2{color:var(--texte-2)}
+.acc{color:var(--accent-texte)}
+.lede{font-size:clamp(18px,1.9vw,20.5px);line-height:1.6;max-width:60ch;color:var(--texte-2)}
+.prose{max-width:63ch}
+.pile{display:flex;flex-direction:column}
+.g-8{gap:8px}.g-14{gap:14px}.g-20{gap:20px}.g-28{gap:28px}.g-40{gap:40px}
+
+.tete{display:flex;flex-direction:column;gap:18px;margin-bottom:clamp(38px,4.6vw,62px);max-width:70ch}
+.tete .mono{color:var(--accent-texte)}
+
+:where(a,button,[tabindex]):focus-visible{
+  outline:2px solid var(--terracotta);outline-offset:3px;border-radius:1px;
+}
+
+/* ---------- en-tête ---------- */
+.haut{
+  position:sticky;top:0;z-index:60;background:var(--encre);
+  border-bottom:1px solid var(--filet);
+}
+.haut__in{display:flex;align-items:center;gap:24px;height:60px}
+.logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;
+  font-family:Faustina,Georgia,serif;font-size:19px;font-weight:600;
+  letter-spacing:.02em;color:var(--papier);
+}
+.logo__m{display:block;width:13px;height:17px;flex:none}
+.nav{display:flex;gap:22px;margin-left:auto}
+.nav a{color:var(--ardoise);text-decoration:none;transition:color .18s}
+.nav a:hover{color:var(--papier)}
+.lang{display:flex;align-items:center;gap:2px;margin-left:auto}
+.nav + .lang{margin-left:24px}
+.lang button{
+  font:inherit;background:none;border:0;padding:5px 7px;cursor:pointer;
+  color:var(--ardoise);font-family:"Martian Mono",monospace;font-size:10.5px;
+  letter-spacing:.09em;transition:color .18s;
+}
+.lang button[aria-pressed="true"]{color:var(--terracotta-clair)}
+.lang span{color:var(--filet-fort)}
+@media (max-width:860px){.nav{display:none}.lang{margin-left:auto}}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(64px,9vw,120px) clamp(72px,10vw,128px)}
+.hero__grid{display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(34px,5vw,76px);align-items:start}
+.hero__eyebrow{color:var(--terracotta-clair)}
+.hero h1{margin-block:20px 26px}
+.hero h1 em{font-style:italic;font-weight:500}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin-top:34px}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;text-decoration:none;
+  padding:13px 22px;border:1px solid var(--terracotta);color:var(--terracotta-clair);
+  border-radius:var(--r);font-family:"Martian Mono",monospace;font-size:10.5px;
+  letter-spacing:.09em;text-transform:uppercase;transition:background .2s,color .2s;
+}
+.btn:hover{background:var(--terracotta);color:#FFF}
+.lien{
+  text-decoration:none;color:var(--texte-2);border-bottom:1px solid var(--filet-fort);
+  padding-bottom:2px;transition:color .2s,border-color .2s;
+}
+.lien:hover{color:var(--texte);border-color:var(--accent)}
+
+/* ---------- carte ticket ---------- */
+.ticket{background:var(--surface);border:1px solid var(--filet);border-radius:var(--r);padding:clamp(20px,2.4vw,28px)}
+.ticket__meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--texte-2);padding-bottom:14px;border-bottom:1px solid var(--filet)}
+.ticket__meta b{color:var(--terracotta-clair);font-weight:400}
+.voix{
+  font-family:Faustina,Georgia,serif;font-style:italic;font-weight:400;
+  font-size:clamp(18px,2vw,21px);line-height:1.56;color:var(--texte);margin-top:18px;
+}
+.gloss{margin-top:12px;color:var(--texte-2);font-size:14px;line-height:1.5}
+.note{margin-top:16px;color:var(--texte-2);opacity:.85}
+.hero__renvoi{display:flex;gap:9px;margin-top:14px;color:var(--texte-2)}
+@media (max-width:900px){.hero__grid{grid-template-columns:1fr;gap:38px}}
+</style>
+<style>
+/* ---------- 2 · le constat : le parc, unité par unité ---------- */
+.constat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:clamp(34px,5vw,68px);align-items:start}
+.parc{display:grid;grid-template-columns:repeat(31,1fr);gap:3px}
+.parc i{display:block;aspect-ratio:1;border-radius:1px;background:var(--surface-2)}
+.parc i.on{background:var(--terracotta)}
+.legende{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px}
+.legende div{display:flex;align-items:center;gap:9px;color:var(--texte-2)}
+.legende b{width:9px;height:9px;border-radius:1px;background:var(--terracotta);flex:none}
+.legende .b2{background:var(--surface-2)}
+.chiffre{font-family:Faustina,Georgia,serif;font-size:clamp(30px,3.4vw,42px);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--texte)}
+.socle{display:flex;flex-direction:column;gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid var(--filet)}
+.socle__l{display:grid;grid-template-columns:minmax(0,86px) minmax(0,1fr);gap:8px 22px;align-items:baseline}
+.socle__l .mono{color:var(--accent-texte)}
+@media (max-width:900px){.constat{grid-template-columns:1fr}.parc{max-width:420px}}
+
+/* ---------- 3 · le problème ---------- */
+.constats{display:flex;flex-direction:column}
+.constats > li{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,210px);
+  gap:12px clamp(24px,4vw,56px);padding-block:clamp(26px,3vw,36px);
+  border-top:1px solid var(--filet);list-style:none;
+}
+.constats > li:last-child{border-bottom:1px solid var(--filet)}
+.constats h3{margin-bottom:10px}
+.consequence{color:var(--accent-texte);align-self:start}
+.constats ul{margin:0;padding:0;list-style:none}
+@media (max-width:760px){.constats > li{grid-template-columns:1fr}}
+
+/* ---------- 4 · signature : le ticket annoté ---------- */
+.flux__onglets{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--filet);margin-bottom:0}
+.onglet{
+  font:inherit;background:none;border:0;border-bottom:2px solid transparent;
+  margin-bottom:-1px;padding:14px 20px 13px 0;margin-right:28px;cursor:pointer;
+  color:var(--texte-2);text-align:left;display:flex;align-items:baseline;gap:10px;
+  transition:color .2s,border-color .2s;
+}
+.onglet:last-child{margin-right:0}
+.onglet__n{font-family:"Martian Mono",monospace;font-size:10.5px;letter-spacing:.09em;opacity:.7}
+.onglet__t{font-family:"Martian Mono",monospace;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase}
+.onglet:hover{color:var(--texte)}
+.onglet[aria-selected="true"]{color:var(--terracotta-clair);border-bottom-color:var(--terracotta)}
+.onglet[aria-selected="true"] .onglet__n{opacity:1}
+.js .flux__vues{padding-top:clamp(32px,4vw,44px)}
+.vue{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,276px);gap:clamp(26px,3.6vw,52px);align-items:start}
+.js .vue{animation:entre .32s ease both}
+@keyframes entre{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.vue__desc{margin-top:22px;color:var(--texte-2);max-width:56ch}
+.vue__side{display:flex;flex-direction:column;gap:16px;padding-top:4px}
+.champ{display:flex;flex-direction:column;gap:5px;padding-bottom:14px;border-bottom:1px solid var(--filet)}
+.champ:last-child{border-bottom:0}
+.champ dt{color:var(--texte-2)}
+.champ dd{margin:0;font-size:15px;line-height:1.45;color:var(--texte)}
+.champ dd.acc{color:var(--accent-texte)}
+mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);padding-bottom:1px}
+.tag{
+  display:inline-block;vertical-align:baseline;margin-left:7px;padding:2px 7px;
+  border:1px solid var(--filet-fort);border-radius:var(--r);color:var(--accent-texte);
+  font-family:"Martian Mono",monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+}
+/* vue 03 — le motif */
+.motif{display:flex;flex-direction:column;gap:1px;background:var(--filet);border:1px solid var(--filet);border-radius:var(--r);overflow:hidden}
+.motif li{list-style:none;background:var(--surface);padding:9px 14px;color:var(--texte-2);font-size:13.5px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.motif li.moi{background:var(--surface-2);color:var(--texte);border-left:2px solid var(--terracotta)}
+.motif li.moi b{color:var(--terracotta-clair);font-weight:400}
+.motif__pied{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;color:var(--accent-texte)}
+/* vue 04 — la ligne de registre */
+.registre{width:100%;border-collapse:collapse;font-size:14px}
+.registre th{
+  text-align:left;padding:0 16px 10px 0;color:var(--texte-2);font-weight:400;
+  font-family:"Martian Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  border-bottom:1px solid var(--filet);white-space:nowrap;
+}
+.registre td{padding:16px 16px 16px 0;border-bottom:1px solid var(--filet);vertical-align:top;font-variant-numeric:tabular-nums}
+.registre td:first-child{color:var(--accent-texte);font-family:"Martian Mono",monospace;font-size:11px;letter-spacing:.05em;white-space:nowrap}
+.defile{overflow-x:auto}
+@media (max-width:880px){.vue{grid-template-columns:1fr}.onglet{margin-right:20px;padding-right:0}}
+
+/* ---------- 5 · pourquoi l'ia ---------- */
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,2.4vw,30px)}
+.carte{background:var(--surface);border:1px solid var(--filet);border-radius:var(--r);padding:clamp(22px,2.6vw,32px);display:flex;flex-direction:column;gap:14px}
+.carte--acc{border-top:2px solid var(--terracotta)}
+.carte h3{font-size:20px}
+.carte p{color:var(--texte-2);font-size:16px}
+.carte .mono{color:var(--texte-2)}
+.carte--acc .mono{color:var(--accent-texte)}
+.modeles{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:clamp(28px,3.4vw,40px)}
+.jeton{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--filet);border-radius:var(--r);padding:9px 14px;color:var(--texte-2)}
+.jeton b{color:var(--accent-texte);font-weight:400}
+@media (max-width:760px){.duo{grid-template-columns:1fr}}
+
+/* ---------- 6 · ancrage réglementaire ---------- */
+.cobac{width:100%;border-collapse:collapse;text-align:left;font-size:15.5px}
+.cobac caption{text-align:left;color:var(--texte-2);padding-bottom:16px;font-size:14px}
+.cobac th{
+  font-family:"Martian Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:400;color:var(--texte-2);padding:0 24px 12px 0;border-bottom:1px solid var(--filet-fort);vertical-align:bottom;
+}
+.cobac td{padding:18px 24px 18px 0;border-bottom:1px solid var(--filet);vertical-align:top;line-height:1.55}
+.cobac tr td:first-child{width:38%;color:var(--texte)}
+.cobac tr td:nth-child(2){color:var(--texte-2)}
+.cobac td:last-child{padding-right:0;width:1%;white-space:nowrap}
+.statut{display:inline-flex;align-items:center;gap:8px;color:var(--semantique)}
+.statut::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.source{margin-top:22px;color:var(--texte-2);font-size:13.5px;line-height:1.55;max-width:78ch}
+@media (max-width:760px){.cobac th:last-child,.cobac td:last-child{display:none}.cobac tr td:first-child{width:auto}}
+
+/* ---------- 7 · modèle économique ---------- */
+.strates{display:flex;flex-direction:column}
+.strates > div{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:10px clamp(24px,4vw,52px);padding-block:26px;border-top:1px solid var(--filet)}
+.strates > div:last-child{border-bottom:1px solid var(--filet)}
+.strates h3{font-size:20px}
+.strates p{color:var(--texte-2)}
+@media (max-width:760px){.strates > div{grid-template-columns:1fr}}
+
+/* ---------- 8 · souveraineté ---------- */
+.souv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,2.4vw,30px)}
+.souv ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.souv li{display:grid;grid-template-columns:14px 1fr;gap:12px;color:var(--texte-2);font-size:15.5px;line-height:1.5}
+.souv li::before{content:"";width:7px;height:1px;background:var(--filet-fort);margin-top:12px}
+@media (max-width:760px){.souv{grid-template-columns:1fr}}
+
+/* ---------- 9 · fondateur ---------- */
+.fond{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:clamp(26px,4vw,64px);align-items:start}
+.fond__id{display:flex;flex-direction:column;gap:9px;padding-top:6px}
+.fond__id .nom{font-family:Faustina,Georgia,serif;font-size:28px;font-weight:600;line-height:1.15}
+.fond p + p{margin-top:16px}
+@media (max-width:760px){.fond{grid-template-columns:1fr}}
+
+/* ---------- 10 · contact ---------- */
+.contact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:clamp(28px,4vw,64px);align-items:end}
+.mail{
+  font-family:Faustina,Georgia,serif;font-size:clamp(24px,3.6vw,40px);font-weight:600;
+  text-decoration:none;color:var(--texte);border-bottom:1px solid var(--filet-fort);
+  padding-bottom:4px;transition:color .2s,border-color .2s;word-break:break-word;
+}
+.mail:hover{color:var(--terracotta-clair);border-color:var(--terracotta)}
+.contact__liens{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+@media (max-width:760px){.contact{grid-template-columns:1fr;align-items:start}}
+
+.pied{border-top:1px solid var(--filet);padding-block:32px 40px;color:var(--ardoise)}
+.pied__in{display:flex;flex-wrap:wrap;gap:14px 40px;justify-content:space-between}
+.pied p{max-width:70ch;line-height:1.6}
+
+/* ---------- entrée du hero (une seule séquence) ---------- */
+.js .lever{opacity:0;transform:translateY(10px)}
+.js .lever.vu{opacity:1;transform:none;transition:opacity .55s ease,transform .55s ease}
+.js .lever.d2.vu{transition-delay:.14s}
+@media (prefers-reduced-motion:reduce){
+  .js .lever{opacity:1;transform:none}
+  .js .vue{animation:none}
+}
+</style>
+</head>
+<body>
+
+<header class="haut">
+  <div class="wrap haut__in">
+    <a class="logo" href="#haut" id="haut">
+      <svg class="logo__m" viewBox="0 0 13 17" aria-hidden="true" focusable="false">
+        <rect y="0" width="13" height="2" fill="#C9784A"/>
+        <rect y="5" width="13" height="2" fill="#9AA7BF"/>
+        <rect y="10" width="8" height="2" fill="#9AA7BF"/>
+        <rect y="15" width="13" height="2" fill="#C9784A"/>
+      </svg>
+      Sentinelle
+    </a>
+    <nav class="nav mono" aria-label="Sections">
+      <a href="#constat"><span class="fr">Le constat</span><span class="en">The picture</span></a>
+      <a href="#flux"><span class="fr">Le flux</span><span class="en">The flow</span></a>
+      <a href="#cobac"><span class="fr">Réglementation</span><span class="en">Regulation</span></a>
+      <a href="#contact"><span class="fr">Contact</span><span class="en">Contact</span></a>
+    </nav>
+    <div class="lang">
+      <button type="button" data-set-lang="fr" aria-pressed="true">FR</button>
+      <span aria-hidden="true">·</span>
+      <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ========== 1 · HERO ========== -->
+<section class="band hero">
+  <div class="wrap hero__grid">
+    <div class="lever">
+      <p class="mono hero__eyebrow">
+        <span class="fr">Moteur d’intelligence causale · Zone CEMAC</span>
+        <span class="en">Causal intelligence engine · CEMAC region</span>
+      </p>
+      <h1>
+        <span class="fr">Les réclamations arrivent en langue ordinaire.<br>La conformité les attend <em>en registre</em>.</span>
+        <span class="en">Complaints arrive in everyday language.<br>Compliance expects them <em>in a register</em>.</span>
+      </h1>
+      <p class="lede">
+        <span class="fr">Sentinelle lit ce que le client a réellement écrit, remonte à la cause, rapproche les tickets entre eux, et produit le rapport que la réglementation COBAC attend.</span>
+        <span class="en">Sentinelle reads what the customer actually wrote, traces it back to the cause, connects tickets to one another, and produces the report COBAC regulation expects.</span>
+      </p>
+      <div class="actions">
+        <a class="btn" href="#flux"><span class="fr">Voir le flux</span><span class="en">See the flow</span></a>
+        <a class="lien" href="mailto:alantchapda@gmail.com?subject=Sentinelle%20%E2%80%94%20pitch%20deck"><span class="fr">Demander le pitch deck</span><span class="en">Request the pitch deck</span></a>
+      </div>
+    </div>
+
+    <div class="lever d2">
+      <article class="ticket">
+        <p class="mono ticket__meta">
+          <span class="fr">Réclamation reçue 14/03</span><span class="en">Complaint received 14/03</span>
+          <span aria-hidden="true">·</span>
+          <span class="fr">Canal guichet</span><span class="en">Branch channel</span>
+          <span aria-hidden="true">·</span>
+          <b><span class="fr">Non classée</span><span class="en">Unclassified</span></b>
+        </p>
+        <p class="voix" lang="fr">« bjr on ma débité 2 fois le meme transfert mardi passé, jsuis allé à l’agence ils disent que c’est le système. ça fait 9 jours rien »</p>
+        <p class="gloss en">“Hi, I was debited twice for the same transfer last Tuesday, I went to the branch, they say it’s the system. Nine days now, nothing.”</p>
+        <p class="mono note">
+          <span class="fr">Exemple reconstitué. Aucune donnée d’un établissement réel.</span>
+          <span class="en">Reconstructed example. No data from any real institution.</span>
+        </p>
+      </article>
+      <p class="mono hero__renvoi">
+        <span aria-hidden="true">↓</span>
+        <span class="fr">Ce texte revient à l’étape 04</span>
+        <span class="en">This text returns at step 04</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 2 · LE CONSTAT ========== -->
+<section class="band" id="constat">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Le constat</span><span class="en">The picture</span></p>
+      <h2>
+        <span class="fr">Un parc réglementé, encore peu outillé</span>
+        <span class="en">A regulated sector, still barely equipped</span>
+      </h2>
+    </div>
+    <div class="constat">
+      <div>
+        <p class="prose">
+          <span class="fr">Fin 2024, la zone CEMAC compte <b>521 établissements de microfinance</b>. <b>384 sont au Cameroun</b> — près de trois sur quatre. Chacun, quelle que soit sa taille, relève des mêmes obligations sur le traitement des réclamations de sa clientèle.</span>
+          <span class="en">At the end of 2024, the CEMAC region counts <b>521 microfinance institutions</b>. <b>384 are in Cameroon</b> — close to three in four. Each one, whatever its size, falls under the same obligations on handling customer complaints.</span>
+        </p>
+        <div class="socle">
+          <div class="socle__l">
+            <p class="chiffre">6</p>
+            <p class="txt-2">
+              <span class="fr">règlements COBAC encadrent aujourd’hui l’activité de ces établissements.</span>
+              <span class="en">COBAC regulations currently govern how these institutions operate.</span>
+            </p>
+          </div>
+          <div class="socle__l">
+            <p class="mono">R-2020/01</p>
+            <p class="txt-2">
+              <span class="fr">porte sur le traitement des réclamations de la clientèle. C’est le texte auquel Sentinelle répond, ligne par ligne.</span>
+              <span class="en">covers the handling of customer complaints. That is the text Sentinelle answers, line by line.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="parc" role="img" aria-label="521 établissements de microfinance en zone CEMAC, dont 384 au Cameroun">
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+          <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="legende mono">
+          <div><b></b><span class="fr">384 · Cameroun</span><span class="en">384 · Cameroon</span></div>
+          <div><b class="b2"></b><span class="fr">137 · Reste de la zone</span><span class="en">137 · Rest of the region</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3 · LE PROBLÈME ========== -->
+<section class="band" id="probleme">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Le problème</span><span class="en">The problem</span></p>
+      <h2>
+        <span class="fr">Trois écarts, tous les jours, dans le même service</span>
+        <span class="en">Three gaps, every day, inside the same department</span>
+      </h2>
+    </div>
+    <ul class="constats">
+      <li>
+        <div class="prose">
+          <h3><span class="fr">Le client écrit comme il parle</span><span class="en">Customers write the way they speak</span></h3>
+          <p class="txt-2"><span class="fr">Un ticket dit « on m’a pris 2 fois », jamais « double débit, défaut de rapprochement ». Les moteurs importés ont appris ailleurs, sur d’autres formulations, dans une autre langue de tous les jours. Devant un ticket d’ici, ils rendent « autre » — ou ne rendent rien.</span><span class="en">A ticket says “they took it twice”, never “duplicate debit, reconciliation failure”. Imported engines learned elsewhere, on other phrasings, in someone else’s everyday language. Faced with a ticket from here, they return “other” — or nothing at all.</span></p>
+        </div>
+        <p class="mono consequence"><span class="fr">→ Classé « autre »</span><span class="en">→ Filed as “other”</span></p>
+      </li>
+      <li>
+        <div class="prose">
+          <h3><span class="fr">Le motif se voit trop tard</span><span class="en">The pattern surfaces too late</span></h3>
+          <p class="txt-2"><span class="fr">Dix-sept plaintes qui décrivent le même incident ne se lisent pas une par une. Elles se lisent ensemble. Traitées à l’unité, elles restent dix-sept dossiers clos ; le défaut de processus qui les produit, lui, continue.</span><span class="en">Seventeen complaints describing the same incident cannot be read one at a time. They have to be read together. Handled one by one, they stay seventeen closed cases; the process failure producing them carries on.</span></p>
+        </div>
+        <p class="mono consequence"><span class="fr">→ Vu au trimestre</span><span class="en">→ Seen a quarter later</span></p>
+      </li>
+      <li>
+        <div class="prose">
+          <h3><span class="fr">L’obligation existe, l’outil non</span><span class="en">The obligation exists, the tool does not</span></h3>
+          <p class="txt-2"><span class="fr">Le registre, les délais, l’information du réclamant et le reporting sont exigés par la COBAC. Dans la plupart des établissements, tout cela tient encore dans un tableur partagé et une boîte aux lettres commune.</span><span class="en">The register, the deadlines, informing the complainant and the periodic reporting are all required by COBAC. In most institutions, all of it still lives in a shared spreadsheet and a common mailbox.</span></p>
+        </div>
+        <p class="mono consequence"><span class="fr">→ Tableur + e-mail</span><span class="en">→ Spreadsheet + email</span></p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== 4 · COMMENT ÇA MARCHE (signature) ========== -->
+<section class="band" id="flux">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Comment ça marche</span><span class="en">How it works</span></p>
+      <h2>
+        <span class="fr">Le même ticket, du guichet au registre</span>
+        <span class="en">One ticket, from the counter to the register</span>
+      </h2>
+      <p class="lede"><span class="fr">Quatre états successifs du texte reçu plus haut. Rien n’est réécrit : chaque étape ajoute une couche que l’agent de conformité peut ouvrir, contester, corriger.</span><span class="en">Four successive states of the text received above. Nothing is rewritten: each step adds a layer the compliance officer can open, challenge and correct.</span></p>
+    </div>
+
+    <div class="flux__onglets" role="tablist" aria-label="Étapes du traitement">
+      <button class="onglet" type="button" role="tab" id="ong1" aria-controls="vue1" aria-selected="true"><span class="onglet__n">01</span><span class="onglet__t"><span class="fr">Ticket entrant</span><span class="en">Incoming ticket</span></span></button>
+      <button class="onglet" type="button" role="tab" id="ong2" aria-controls="vue2" aria-selected="false" tabindex="-1"><span class="onglet__n">02</span><span class="onglet__t"><span class="fr">Classification causale</span><span class="en">Causal classification</span></span></button>
+      <button class="onglet" type="button" role="tab" id="ong3" aria-controls="vue3" aria-selected="false" tabindex="-1"><span class="onglet__n">03</span><span class="onglet__t"><span class="fr">Détection de motif</span><span class="en">Pattern detection</span></span></button>
+      <button class="onglet" type="button" role="tab" id="ong4" aria-controls="vue4" aria-selected="false" tabindex="-1"><span class="onglet__n">04</span><span class="onglet__t"><span class="fr">Rapport de conformité</span><span class="en">Compliance report</span></span></button>
+    </div>
+
+    <div class="flux__vues">
+      <!-- 01 -->
+      <div class="vue" role="tabpanel" id="vue1" aria-labelledby="ong1" tabindex="0">
+        <div>
+          <p class="voix" lang="fr">« bjr on ma débité 2 fois le meme transfert mardi passé, jsuis allé à l’agence ils disent que c’est le système. ça fait 9 jours rien »</p>
+          <p class="vue__desc"><span class="fr">Le ticket entre tel qu’il a été écrit : SMS, e-mail, formulaire ou saisie au guichet. On ne demande ni au client ni à l’agent de le reformuler — c’est justement la formulation d’origine qui porte l’information.</span><span class="en">The ticket enters exactly as written: SMS, email, web form or counter entry. Neither the customer nor the agent is asked to rephrase it — the original wording is precisely what carries the information.</span></p>
+        </div>
+        <dl class="vue__side mono">
+          <div class="champ"><dt><span class="fr">Canal</span><span class="en">Channel</span></dt><dd class="mono mono--n"><span class="fr">Guichet — saisie agent</span><span class="en">Counter — agent entry</span></dd></div>
+          <div class="champ"><dt><span class="fr">Reçu le</span><span class="en">Received</span></dt><dd class="mono mono--n">14/03 · 11:42</dd></div>
+          <div class="champ"><dt><span class="fr">Classification</span><span class="en">Classification</span></dt><dd class="mono mono--n txt-2"><span class="fr">Aucune</span><span class="en">None</span></dd></div>
+        </dl>
+      </div>
+
+      <!-- 02 -->
+      <div class="vue" role="tabpanel" id="vue2" aria-labelledby="ong2" tabindex="0" hidden>
+        <div>
+          <p class="voix" lang="fr">« bjr on ma <mark>débité 2 fois le meme transfert</mark> mardi passé, jsuis allé à l’agence ils disent que <mark>c’est le système</mark>. <mark>ça fait 9 jours</mark> rien »</p>
+          <p class="vue__desc"><span class="fr">Le modèle ne cherche pas des mots-clés : il remonte à la cause. « Pris 2 fois », « débité en double » et « passé deux fois » n’ont aucun mot commun et désignent le même défaut. Le texte source reste attaché à la classification, toujours consultable.</span><span class="en">The model does not look for keywords: it traces the cause. “Taken twice”, “double debit” and “went through twice” share no words and point to the same failure. The source text stays attached to the classification, always available for review.</span></p>
+        </div>
+        <dl class="vue__side mono">
+          <div class="champ"><dt><span class="fr">Cause retenue</span><span class="en">Identified cause</span></dt><dd class="mono mono--n acc"><span class="fr">Double débit — défaut de rapprochement</span><span class="en">Duplicate debit — reconciliation failure</span></dd></div>
+          <div class="champ"><dt><span class="fr">Réponse agence</span><span class="en">Branch response</span></dt><dd class="mono mono--n"><span class="fr">Cause imputée au système</span><span class="en">Attributed to the system</span></dd></div>
+          <div class="champ"><dt><span class="fr">Délai écoulé</span><span class="en">Elapsed time</span></dt><dd class="mono mono--n">9 <span class="fr">jours</span><span class="en">days</span></dd></div>
+          <div class="champ"><dt><span class="fr">Confiance modèle</span><span class="en">Model confidence</span></dt><dd class="mono mono--n">0,91 — <span class="fr">à valider</span><span class="en">pending review</span></dd></div>
+        </dl>
+      </div>
+
+      <!-- 03 -->
+      <div class="vue" role="tabpanel" id="vue3" aria-labelledby="ong3" tabindex="0" hidden>
+        <div>
+          <ul class="motif" lang="fr">
+            <li>double prélèvement sur le meme virement, agence dit systeme</li>
+            <li>on ma pris 2 fois largent depuis le 3</li>
+            <li>transfert débité deux fois, toujours pas remboursé</li>
+            <li>meme montant retiré 2x, personne ne repond au telephone</li>
+            <li>j’ai fait un virement il est passé 2 fois</li>
+            <li>2 débits pour une seule opération</li>
+            <li>montant prelevé en double, on me dit d’attendre</li>
+            <li>le meme transfert compté deux fois sur mon relevé</li>
+            <li class="moi"><b>→</b> bjr on ma débité 2 fois le meme transfert mardi passé…</li>
+            <li>double debit depuis mardi, aucune reponse</li>
+            <li>on a prélevé 2 fois, ça fait 12 jours</li>
+            <li>operation passée deux fois, remboursement pas arrivé</li>
+            <li>j’ai été débité 2 fois pour 1 seul envoi</li>
+            <li>encore un double prelevement ce mois ci</li>
+            <li>2 fois le meme montant, l’agent dit c’est la machine</li>
+            <li>virement doublé, je veux mon argent</li>
+            <li>meme somme retirée 2 fois, pas de rappel</li>
+          </ul>
+          <p class="mono motif__pied">
+            <span><span class="fr">17 réclamations</span><span class="en">17 complaints</span></span>
+            <span><span class="fr">1 agence</span><span class="en">1 branch</span></span>
+            <span><span class="fr">11 jours</span><span class="en">11 days</span></span>
+            <span><span class="fr">1 cause commune</span><span class="en">1 shared cause</span></span>
+          </p>
+          <p class="vue__desc"><span class="fr">Le ticket est confronté aux autres. Dix-sept réclamations, une agence, onze jours, une seule cause : ce n’est plus un incident client, c’est un défaut de processus. Le seuil d’alerte se règle par établissement.</span><span class="en">The ticket is set against the others. Seventeen complaints, one branch, eleven days, a single cause: this is no longer a customer incident, it is a process failure. The alert threshold is set per institution.</span></p>
+        </div>
+        <dl class="vue__side mono">
+          <div class="champ"><dt><span class="fr">Volume du motif</span><span class="en">Pattern volume</span></dt><dd class="mono mono--n acc">17 <span class="fr">tickets</span><span class="en">tickets</span></dd></div>
+          <div class="champ"><dt><span class="fr">Fenêtre</span><span class="en">Window</span></dt><dd class="mono mono--n">11 <span class="fr">jours glissants</span><span class="en">rolling days</span></dd></div>
+          <div class="champ"><dt><span class="fr">Concentration</span><span class="en">Concentration</span></dt><dd class="mono mono--n"><span class="fr">1 agence, 1 canal</span><span class="en">1 branch, 1 channel</span></dd></div>
+          <div class="champ"><dt><span class="fr">Statut</span><span class="en">Status</span></dt><dd class="mono mono--n acc"><span class="fr">Remonté à la conformité</span><span class="en">Escalated to compliance</span></dd></div>
+        </dl>
+      </div>
+
+      <!-- 04 -->
+      <div class="vue" role="tabpanel" id="vue4" aria-labelledby="ong4" tabindex="0" hidden>
+        <div>
+          <div class="defile">
+            <table class="registre">
+              <thead>
+                <tr>
+                  <th><span class="fr">Référence</span><span class="en">Reference</span></th>
+                  <th><span class="fr">Cause</span><span class="en">Cause</span></th>
+                  <th><span class="fr">Volume</span><span class="en">Volume</span></th>
+                  <th><span class="fr">Délai moyen</span><span class="en">Avg. time</span></th>
+                  <th><span class="fr">Texte visé</span><span class="en">Applicable text</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>MOT-2403-017</td>
+                  <td><span class="fr">Double débit — défaut de rapprochement</span><span class="en">Duplicate debit — reconciliation failure</span></td>
+                  <td>17</td>
+                  <td>9,4 <span class="fr">j</span><span class="en">d</span></td>
+                  <td>R-2020/01</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="vue__desc"><span class="fr">Le motif devient une ligne de registre, produite à partir des tickets et non ressaisie à la main : référence, cause, volume, délai moyen de traitement, texte applicable. Datée, exportable, et rattachée aux dix-sept textes d’origine.</span><span class="en">The pattern becomes a register line, produced from the tickets rather than re-typed by hand: reference, cause, volume, average handling time, applicable text. Dated, exportable, and linked back to the seventeen original texts.</span></p>
+        </div>
+        <dl class="vue__side mono">
+          <div class="champ"><dt><span class="fr">Sortie</span><span class="en">Output</span></dt><dd class="mono mono--n">CSV · PDF · API</dd></div>
+          <div class="champ"><dt><span class="fr">Période</span><span class="en">Period</span></dt><dd class="mono mono--n"><span class="fr">Mensuelle ou trimestrielle</span><span class="en">Monthly or quarterly</span></dd></div>
+          <div class="champ"><dt><span class="fr">Traçabilité</span><span class="en">Traceability</span></dt><dd class="mono mono--n"><span class="fr">Texte source, version du modèle, validateur</span><span class="en">Source text, model version, reviewer</span></dd></div>
+          <div class="champ"><dt><span class="fr">Validation</span><span class="en">Sign-off</span></dt><dd class="mono mono--n acc"><span class="fr">Agent de conformité</span><span class="en">Compliance officer</span></dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 5 · POURQUOI L'IA ========== -->
+<section class="band" id="ia">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Pourquoi un modèle, pas des règles</span><span class="en">Why a model, not rules</span></p>
+      <h2>
+        <span class="fr">Un moteur de règles ne lit pas entre les tickets</span>
+        <span class="en">A rules engine cannot read between tickets</span>
+      </h2>
+      <p class="lede"><span class="fr">La différence ne tient pas à la performance. Elle tient à ce qu’on peut demander : une règle traite un ticket à la fois, avec les mots qu’on a prévus. Un modèle raisonne sur plusieurs textes ensemble, y compris sur des formulations que personne n’avait anticipées.</span><span class="en">The difference is not about performance. It is about what you can ask for: a rule handles one ticket at a time, using words someone anticipated. A model reasons across several texts at once, including phrasings no one saw coming.</span></p>
+    </div>
+    <div class="duo">
+      <div class="carte">
+        <p class="mono"><span class="fr">Moteur de règles</span><span class="en">Rules engine</span></p>
+        <h3><span class="fr">Associe un mot à une case</span><span class="en">Maps a word to a box</span></h3>
+        <p><span class="fr">Il faut écrire la règle avant de voir le cas. « Débité 2 fois » est prévu, « on m’a pris 2 fois » ne l’est pas. Chaque tournure nouvelle demande une intervention, et le ticket non prévu tombe dans « autre ».</span><span class="en">The rule has to be written before the case appears. “Debited twice” is covered, “they took it from me twice” is not. Every new turn of phrase needs a human edit, and anything unforeseen falls into “other”.</span></p>
+        <p><span class="fr">Surtout : la règle voit un ticket, jamais dix-sept.</span><span class="en">Above all: a rule sees one ticket, never seventeen.</span></p>
+      </div>
+      <div class="carte carte--acc">
+        <p class="mono"><span class="fr">Sentinelle</span><span class="en">Sentinelle</span></p>
+        <h3><span class="fr">Remonte à la cause, puis relie</span><span class="en">Traces the cause, then connects</span></h3>
+        <p><span class="fr">Le modèle interprète une formulation qu’il n’a jamais vue, la rattache à une cause, puis compare cette cause à celles des autres tickets de la période. Le motif n’est pas défini à l’avance : il est constaté.</span><span class="en">The model interprets a phrasing it has never seen, attaches it to a cause, then compares that cause with the other tickets in the period. The pattern is not defined in advance: it is observed.</span></p>
+        <p><span class="fr">Le modèle propose, l’agent de conformité tranche. Chaque décision garde son texte source et la version du modèle qui l’a produite.</span><span class="en">The model proposes, the compliance officer decides. Every decision keeps its source text and the model version that produced it.</span></p>
+      </div>
+    </div>
+    <div class="modeles">
+      <span class="jeton mono"><b>Gemini</b> <span class="fr">Raisonnement multi-tickets, mode cloud</span><span class="en">Multi-ticket reasoning, cloud mode</span></span>
+      <span class="jeton mono"><b>Gemma</b> <span class="fr">Même flux, exécuté sur place</span><span class="en">Same flow, run on premises</span></span>
+      <span class="jeton mono"><b><span class="fr">Français parlé</span><span class="en">Spoken French</span></b> <span class="fr">Registre réel des réclamations en zone CEMAC</span><span class="en">The actual register of CEMAC complaints</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 6 · ANCRAGE RÉGLEMENTAIRE ========== -->
+<section class="band band--papier" id="cobac">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Ancrage réglementaire</span><span class="en">Regulatory anchoring</span></p>
+      <h2>
+        <span class="fr">Ce que la COBAC exige, ce que le produit fait</span>
+        <span class="en">What COBAC requires, what the product does</span>
+      </h2>
+    </div>
+    <div class="defile">
+      <table class="cobac">
+        <caption class="mono"><span class="fr">Règlement COBAC R-2020/01 — traitement des réclamations de la clientèle</span><span class="en">COBAC Regulation R-2020/01 — handling of customer complaints</span></caption>
+        <thead>
+          <tr>
+            <th><span class="fr">Exigence</span><span class="en">Requirement</span></th>
+            <th><span class="fr">Réponse produit</span><span class="en">Product response</span></th>
+            <th><span class="fr">État</span><span class="en">State</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="fr">Tenue d’un registre des réclamations</span><span class="en">Keeping a complaints register</span></td>
+            <td><span class="fr">Chaque ticket entre au registre à la réception, horodaté, avec son texte d’origine conservé intact.</span><span class="en">Every ticket enters the register on arrival, timestamped, with its original text kept intact.</span></td>
+            <td><span class="statut mono"><span class="fr">Couvert</span><span class="en">Covered</span></span></td>
+          </tr>
+          <tr>
+            <td><span class="fr">Respect des délais de traitement</span><span class="en">Meeting handling deadlines</span></td>
+            <td><span class="fr">Le délai court dès la réception. Les dossiers qui approchent la limite remontent en tête de file avant l’échéance, pas après.</span><span class="en">The clock starts on arrival. Cases nearing the limit move to the top of the queue before the deadline, not after.</span></td>
+            <td><span class="statut mono"><span class="fr">Couvert</span><span class="en">Covered</span></span></td>
+          </tr>
+          <tr>
+            <td><span class="fr">Information du réclamant</span><span class="en">Informing the complainant</span></td>
+            <td><span class="fr">Accusé de réception et réponse rattachés au dossier, dans la langue du ticket, avec la trace de l’envoi.</span><span class="en">Acknowledgement and reply attached to the case, in the language of the ticket, with proof of sending.</span></td>
+            <td><span class="statut mono"><span class="fr">Couvert</span><span class="en">Covered</span></span></td>
+          </tr>
+          <tr>
+            <td><span class="fr">Reporting périodique à l’autorité</span><span class="en">Periodic reporting to the authority</span></td>
+            <td><span class="fr">Le rapport est produit à partir du registre, pas ressaisi : volumes, causes, délais, motifs récurrents de la période.</span><span class="en">The report is produced from the register, not re-typed: volumes, causes, delays and recurring patterns for the period.</span></td>
+            <td><span class="statut mono"><span class="fr">Couvert</span><span class="en">Covered</span></span></td>
+          </tr>
+          <tr>
+            <td><span class="fr">Traçabilité des décisions</span><span class="en">Traceability of decisions</span></td>
+            <td><span class="fr">Chaque classification conserve son texte source, la version du modèle et l’agent qui l’a validée. Une décision se rejoue.</span><span class="en">Every classification keeps its source text, the model version and the officer who approved it. A decision can be replayed.</span></td>
+            <td><span class="statut mono"><span class="fr">Couvert</span><span class="en">Covered</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="source"><span class="fr">Les libellés ci-dessus résument les obligations par catégorie et ne se substituent pas au texte du règlement. Sentinelle est un outil d’aide au traitement et au reporting : la responsabilité de la conformité reste celle de l’établissement assujetti.</span><span class="en">The wording above summarises the obligations by category and does not replace the text of the regulation. Sentinelle is a processing and reporting aid: responsibility for compliance remains with the regulated institution.</span></p>
+  </div>
+</section>
+
+<!-- ========== 7 · MODÈLE ÉCONOMIQUE ========== -->
+<section class="band band--papier band--suite" id="modele">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Modèle économique</span><span class="en">Business model</span></p>
+      <h2>
+        <span class="fr">Trois strates, souscrites séparément</span>
+        <span class="en">Three layers, bought separately</span>
+      </h2>
+    </div>
+    <div class="strates">
+      <div>
+        <h3><span class="fr">Diagnostic</span><span class="en">Diagnostic</span></h3>
+        <p><span class="fr">Une analyse ponctuelle du stock de réclamations déjà accumulé, facturée une fois. Elle montre les motifs présents dans les données de l’établissement avant tout engagement.</span><span class="en">A one-off analysis of the complaints already accumulated, billed once. It shows the patterns present in the institution’s own data before any commitment.</span></p>
+      </div>
+      <div>
+        <h3><span class="fr">Abonnement</span><span class="en">Subscription</span></h3>
+        <p><span class="fr">La plateforme en service continu : réception, classification, détection de motifs, registre. Par établissement, à l’année.</span><span class="en">The platform in continuous service: intake, classification, pattern detection, register. Per institution, per year.</span></p>
+      </div>
+      <div>
+        <h3><span class="fr">Add-on conformité</span><span class="en">Compliance add-on</span></h3>
+        <p><span class="fr">La production, la validation et l’archivage des rapports réglementaires périodiques, pour les établissements qui veulent déléguer cette sortie.</span><span class="en">Production, review and archiving of the periodic regulatory reports, for institutions that want to hand off that output.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 8 · SOUVERAINETÉ ========== -->
+<section class="band" id="souverainete">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Souveraineté des données</span><span class="en">Data sovereignty</span></p>
+      <h2>
+        <span class="fr">Où tournent les modèles : c’est l’établissement qui tranche</span>
+        <span class="en">Where the models run is the institution’s call</span>
+      </h2>
+      <p class="lede"><span class="fr">Le même flux, les mêmes sorties, deux modes de déploiement. Le choix se fait à l’installation et peut changer ensuite.</span><span class="en">Same flow, same outputs, two deployment modes. The choice is made at install time and can change later.</span></p>
+    </div>
+    <div class="souv">
+      <div class="carte">
+        <p class="mono"><span class="fr">Mode cloud</span><span class="en">Cloud mode</span></p>
+        <h3>Gemini</h3>
+        <ul>
+          <li><span class="fr">Mise en service rapide, aucune infrastructure à prévoir.</span><span class="en">Fast to switch on, no infrastructure to plan for.</span></li>
+          <li><span class="fr">Accès à la dernière génération de modèles, sans mise à jour locale.</span><span class="en">Access to the latest model generation, with no local upgrade.</span></li>
+          <li><span class="fr">Les textes de réclamation sont traités hors du pays. À évaluer selon la politique interne de l’établissement.</span><span class="en">Complaint texts are processed outside the country. To be assessed against the institution’s own policy.</span></li>
+        </ul>
+      </div>
+      <div class="carte carte--acc">
+        <p class="mono"><span class="fr">Mode auto-hébergé</span><span class="en">Self-hosted mode</span></p>
+        <h3>Gemma + Ollama</h3>
+        <ul>
+          <li><span class="fr">Le modèle tourne sur les serveurs de l’établissement.</span><span class="en">The model runs on the institution’s own servers.</span></li>
+          <li><span class="fr">Aucun texte de réclamation ne quitte l’infrastructure.</span><span class="en">No complaint text ever leaves the infrastructure.</span></li>
+          <li><span class="fr">Capacité de raisonnement plus modeste, et une machine à dimensionner. C’est le prix de la souveraineté, il est assumé.</span><span class="en">More modest reasoning capacity, and a machine to size. That is the price of sovereignty, and it is a deliberate one.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 9 · FONDATEUR ========== -->
+<section class="band" id="fondateur">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Fondateur</span><span class="en">Founder</span></p>
+    </div>
+    <div class="fond">
+      <div class="fond__id">
+        <p class="nom">Alan Tchapda</p>
+        <p class="mono txt-2"><span class="fr">Data Engineer</span><span class="en">Data Engineer</span></p>
+        <p class="mono acc">TRI AI Cohort 10<br><span class="mono--n txt-2"><span class="fr">programme mené avec Google DeepMind</span><span class="en">programme run with Google DeepMind</span></span></p>
+      </div>
+      <div class="prose">
+        <p class="txt-2"><span class="fr">Je construis des chaînes de données depuis plusieurs années. Sentinelle vient d’un écart que j’ai vu de près : la matière réglementaire d’Afrique centrale est écrite en français administratif, les réclamations arrivent en français parlé, et il n’existe presque rien entre les deux.</span><span class="en">I have been building data pipelines for several years. Sentinelle comes out of a gap I saw at close range: Central African regulation is written in administrative French, complaints arrive in spoken French, and almost nothing exists in between.</span></p>
+        <p class="txt-2"><span class="fr">Le produit ne remplace pas l’agent de conformité. Il lui rend les heures passées à recopier des tickets dans un tableur, et lui montre ce qu’un traitement dossier par dossier ne peut pas faire apparaître.</span><span class="en">The product does not replace the compliance officer. It gives back the hours spent copying tickets into a spreadsheet, and shows what case-by-case handling cannot reveal.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 10 · CONTACT ========== -->
+<section class="band band--serre" id="contact">
+  <div class="wrap">
+    <div class="tete">
+      <p class="mono"><span class="fr">Contact</span><span class="en">Contact</span></p>
+    </div>
+    <div class="contact">
+      <a class="mail" href="mailto:alantchapda@gmail.com">alantchapda@gmail.com</a>
+      <div class="contact__liens mono">
+        <a class="lien" href="mailto:alantchapda@gmail.com?subject=Sentinelle%20%E2%80%94%20pitch%20deck"><span class="fr">Demander le pitch deck</span><span class="en">Request the pitch deck</span></a>
+        <a class="lien" href="mailto:alantchapda@gmail.com?subject=Sentinelle%20%E2%80%94%20diagnostic"><span class="fr">Demander un diagnostic</span><span class="en">Request a diagnostic</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="pied">
+  <div class="wrap pied__in mono">
+    <p>Sentinelle · <span class="fr">Zone CEMAC</span><span class="en">CEMAC region</span> · 2026</p>
+    <p class="mono--n"><span class="fr">Chiffres publics COBAC. Les réclamations citées sont reconstituées et ne proviennent d’aucun établissement identifiable.</span><span class="en">Public COBAC figures. The complaints quoted are reconstructed and come from no identifiable institution.</span></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var d=document, r=d.documentElement;
+  r.classList.add('js');
+
+  /* --- langue --- */
+  var boutons=[].slice.call(d.querySelectorAll('[data-set-lang]'));
+  function langue(l){
+    r.setAttribute('data-lang',l);
+    r.setAttribute('lang',l);
+    boutons.forEach(function(b){b.setAttribute('aria-pressed', String(b.dataset.setLang===l));});
+    try{localStorage.setItem('sentinelle-lang',l);}catch(e){}
+  }
+  boutons.forEach(function(b){b.addEventListener('click',function(){langue(b.dataset.setLang);});});
+  try{
+    var mem=localStorage.getItem('sentinelle-lang');
+    if(mem==='en'||mem==='fr'){langue(mem);}
+    else if((navigator.language||'').slice(0,2)!=='fr'){langue('en');}
+  }catch(e){}
+
+  /* --- flux : onglets --- */
+  var onglets=[].slice.call(d.querySelectorAll('.onglet'));
+  var vues=onglets.map(function(o){return d.getElementById(o.getAttribute('aria-controls'));});
+  function montre(i,focus){
+    onglets.forEach(function(o,j){
+      var actif=i===j;
+      o.setAttribute('aria-selected',String(actif));
+      o.tabIndex=actif?0:-1;
+      vues[j].hidden=!actif;
+    });
+    if(focus){onglets[i].focus();}
+  }
+  onglets.forEach(function(o,i){
+    o.addEventListener('click',function(){montre(i,false);});
+    o.addEventListener('keydown',function(e){
+      var n=null;
+      if(e.key==='ArrowRight'){n=(i+1)%onglets.length;}
+      if(e.key==='ArrowLeft'){n=(i-1+onglets.length)%onglets.length;}
+      if(e.key==='Home'){n=0;}
+      if(e.key==='End'){n=onglets.length-1;}
+      if(n!==null){e.preventDefault();montre(n,true);}
+    });
+  });
+  montre(0,false);
+
+  /* --- entrée du hero, une seule fois --- */
+  var levers=[].slice.call(d.querySelectorAll('.lever'));
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){levers.forEach(function(el){el.classList.add('vu');});});
+  });
+})();
+</script>
+</body>
+</html>
