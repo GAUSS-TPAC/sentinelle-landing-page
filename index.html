@@ -172,14 +172,14 @@ a{color:inherit}
   font-size:clamp(18px,2vw,21px);line-height:1.56;color:var(--texte);margin-top:18px;
 }
 .gloss{margin-top:12px;color:var(--texte-2);font-size:14px;line-height:1.5}
-.note{margin-top:16px;color:var(--texte-2);opacity:.85}
+.note{margin-top:16px;color:var(--texte-2)}
 .hero__renvoi{display:flex;gap:9px;margin-top:14px;color:var(--texte-2)}
 @media (max-width:900px){.hero__grid{grid-template-columns:1fr;gap:38px}}
 </style>
 <style>
 /* ---------- 2 · le constat : le parc, unité par unité ---------- */
-.constat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:clamp(34px,5vw,68px);align-items:start}
-.parc{display:grid;grid-template-columns:repeat(31,1fr);gap:3px}
+.constat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,470px);gap:clamp(34px,5vw,68px);align-items:start}
+.parc{display:grid;grid-template-columns:repeat(35,1fr);gap:2px;max-width:470px}
 .parc i{display:block;aspect-ratio:1;border-radius:1px;background:var(--surface-2)}
 .parc i.on{background:var(--terracotta)}
 .legende{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px}
@@ -190,10 +190,10 @@ a{color:inherit}
 .socle{display:flex;flex-direction:column;gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid var(--filet)}
 .socle__l{display:grid;grid-template-columns:minmax(0,86px) minmax(0,1fr);gap:8px 22px;align-items:baseline}
 .socle__l .mono{color:var(--accent-texte)}
-@media (max-width:900px){.constat{grid-template-columns:1fr}.parc{max-width:420px}}
+@media (max-width:900px){.constat{grid-template-columns:minmax(0,1fr)}.parc{max-width:420px}}
 
 /* ---------- 3 · le problème ---------- */
-.constats{display:flex;flex-direction:column}
+.constats{display:flex;flex-direction:column;margin:0;padding:0}
 .constats > li{
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,210px);
   gap:12px clamp(24px,4vw,56px);padding-block:clamp(26px,3vw,36px);
@@ -203,7 +203,7 @@ a{color:inherit}
 .constats h3{margin-bottom:10px}
 .consequence{color:var(--accent-texte);align-self:start}
 .constats ul{margin:0;padding:0;list-style:none}
-@media (max-width:760px){.constats > li{grid-template-columns:1fr}}
+@media (max-width:760px){.constats > li{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- 4 · signature : le ticket annoté ---------- */
 .flux__onglets{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--filet);margin-bottom:0}
@@ -220,15 +220,18 @@ a{color:inherit}
 .onglet[aria-selected="true"]{color:var(--terracotta-clair);border-bottom-color:var(--terracotta)}
 .onglet[aria-selected="true"] .onglet__n{opacity:1}
 .js .flux__vues{padding-top:clamp(32px,4vw,44px)}
-.vue{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,276px);gap:clamp(26px,3.6vw,52px);align-items:start}
+@media (min-width:881px){.js .flux__vues{min-height:300px}}
+.vue{display:grid;grid-template-columns:minmax(0,660px) minmax(0,276px);gap:clamp(26px,3.6vw,52px);justify-content:space-between;align-items:start}
+.vue[hidden]{display:none}
 .js .vue{animation:entre .32s ease both}
 @keyframes entre{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.vue .voix{max-width:52ch}
 .vue__desc{margin-top:22px;color:var(--texte-2);max-width:56ch}
 .vue__side{display:flex;flex-direction:column;gap:16px;padding-top:4px}
 .champ{display:flex;flex-direction:column;gap:5px;padding-bottom:14px;border-bottom:1px solid var(--filet)}
 .champ:last-child{border-bottom:0}
 .champ dt{color:var(--texte-2)}
-.champ dd{margin:0;font-size:15px;line-height:1.45;color:var(--texte)}
+.champ dd{margin:0;font-size:12.5px;line-height:1.55;letter-spacing:.01em;color:var(--texte)}
 .champ dd.acc{color:var(--accent-texte)}
 mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);padding-bottom:1px}
 .tag{
@@ -237,8 +240,8 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
   font-family:"Martian Mono",monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
 }
 /* vue 03 — le motif */
-.motif{display:flex;flex-direction:column;gap:1px;background:var(--filet);border:1px solid var(--filet);border-radius:var(--r);overflow:hidden}
-.motif li{list-style:none;background:var(--surface);padding:9px 14px;color:var(--texte-2);font-size:13.5px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.motif{display:flex;flex-direction:column;gap:1px;margin:0;padding:0;min-width:0;background:var(--filet);border:1px solid var(--filet);border-radius:var(--r);overflow:hidden}
+.motif li{list-style:none;background:var(--surface);padding:7px 13px;color:var(--texte-2);font-size:13px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .motif li.moi{background:var(--surface-2);color:var(--texte);border-left:2px solid var(--terracotta)}
 .motif li.moi b{color:var(--terracotta-clair);font-weight:400}
 .motif__pied{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;color:var(--accent-texte)}
@@ -252,7 +255,12 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 .registre td{padding:16px 16px 16px 0;border-bottom:1px solid var(--filet);vertical-align:top;font-variant-numeric:tabular-nums}
 .registre td:first-child{color:var(--accent-texte);font-family:"Martian Mono",monospace;font-size:11px;letter-spacing:.05em;white-space:nowrap}
 .defile{overflow-x:auto}
-@media (max-width:880px){.vue{grid-template-columns:1fr}.onglet{margin-right:20px;padding-right:0}}
+@media (max-width:880px){
+  .vue{grid-template-columns:minmax(0,1fr)}
+  .flux__onglets{flex-direction:column;border-bottom:0}
+  .onglet{width:100%;margin:0;padding:13px 0 13px 14px;border-left:2px solid transparent;border-bottom:1px solid var(--filet)}
+  .onglet[aria-selected="true"]{border-left-color:var(--terracotta);border-bottom-color:var(--filet)}
+}
 
 /* ---------- 5 · pourquoi l'ia ---------- */
 .duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,2.4vw,30px)}
@@ -265,11 +273,11 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 .modeles{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:clamp(28px,3.4vw,40px)}
 .jeton{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--filet);border-radius:var(--r);padding:9px 14px;color:var(--texte-2)}
 .jeton b{color:var(--accent-texte);font-weight:400}
-@media (max-width:760px){.duo{grid-template-columns:1fr}}
+@media (max-width:760px){.duo{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- 6 · ancrage réglementaire ---------- */
 .cobac{width:100%;border-collapse:collapse;text-align:left;font-size:15.5px}
-.cobac caption{text-align:left;color:var(--texte-2);padding-bottom:16px;font-size:14px}
+.cobac caption{text-align:left;color:var(--texte-2);padding-bottom:18px;font-size:11px}
 .cobac th{
   font-family:"Martian Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
   font-weight:400;color:var(--texte-2);padding:0 24px 12px 0;border-bottom:1px solid var(--filet-fort);vertical-align:bottom;
@@ -282,6 +290,15 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 .statut::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
 .source{margin-top:22px;color:var(--texte-2);font-size:13.5px;line-height:1.55;max-width:78ch}
 @media (max-width:760px){.cobac th:last-child,.cobac td:last-child{display:none}.cobac tr td:first-child{width:auto}}
+@media (max-width:620px){
+  .cobac,.cobac tbody,.cobac tr,.cobac td{display:block}
+  .cobac thead{display:none}
+  .cobac caption{display:block;width:auto}
+  .cobac tr{padding-block:20px;border-bottom:1px solid var(--filet)}
+  .cobac tr:first-child{padding-top:0}
+  .cobac td{border:0;padding:0 0 6px}
+  .cobac tr td:first-child{font-weight:500}
+}
 
 /* ---------- 7 · modèle économique ---------- */
 .strates{display:flex;flex-direction:column}
@@ -289,21 +306,21 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 .strates > div:last-child{border-bottom:1px solid var(--filet)}
 .strates h3{font-size:20px}
 .strates p{color:var(--texte-2)}
-@media (max-width:760px){.strates > div{grid-template-columns:1fr}}
+@media (max-width:760px){.strates > div{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- 8 · souveraineté ---------- */
 .souv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,2.4vw,30px)}
 .souv ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
 .souv li{display:grid;grid-template-columns:14px 1fr;gap:12px;color:var(--texte-2);font-size:15.5px;line-height:1.5}
 .souv li::before{content:"";width:7px;height:1px;background:var(--filet-fort);margin-top:12px}
-@media (max-width:760px){.souv{grid-template-columns:1fr}}
+@media (max-width:760px){.souv{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- 9 · fondateur ---------- */
 .fond{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:clamp(26px,4vw,64px);align-items:start}
 .fond__id{display:flex;flex-direction:column;gap:9px;padding-top:6px}
 .fond__id .nom{font-family:Faustina,Georgia,serif;font-size:28px;font-weight:600;line-height:1.15}
 .fond p + p{margin-top:16px}
-@media (max-width:760px){.fond{grid-template-columns:1fr}}
+@media (max-width:760px){.fond{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- 10 · contact ---------- */
 .contact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:clamp(28px,4vw,64px);align-items:end}
@@ -775,7 +792,7 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 </section>
 
 <!-- ========== 9 · FONDATEUR ========== -->
-<section class="band" id="fondateur">
+<section class="band band--serre" id="fondateur">
   <div class="wrap">
     <div class="tete">
       <p class="mono"><span class="fr">Fondateur</span><span class="en">Founder</span></p>
@@ -823,6 +840,7 @@ mark{background:none;color:inherit;border-bottom:2px solid var(--terracotta);pad
 (function(){
   var d=document, r=d.documentElement;
   r.classList.add('js');
+  if(!r.getAttribute('data-lang')){r.setAttribute('data-lang','fr');}
 
   /* --- langue --- */
   var boutons=[].slice.call(d.querySelectorAll('[data-set-lang]'));
