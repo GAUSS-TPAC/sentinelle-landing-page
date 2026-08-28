@@ -8,6 +8,8 @@ Page unique, statique, sans dépendance ni build. Tout tient dans `index.html`
 index.html          la page entière
 fonts/*.woff2       Faustina, IBM Plex Sans, Martian Mono — 128 Ko au total
 og.png              carte de partage 1200×630
+logo.svg            la marque, autonome et réutilisable (deck, presse)
+image/              masters du logo fournis (SVG exporté, PNG 2720px, composant React)
 ```
 
 ## À faire au déploiement
@@ -65,6 +67,29 @@ Le titre de l'onglet, la `meta description` et les `aria-label` suivent la bascu
 > textes dans le même document. C'est le prix du site en un seul fichier. Si le
 > référencement devient un objectif, il faudra scinder en `/fr/` et `/en/` avec
 > des `hreflang`.
+
+## Logo
+
+La marque est un double S anguleux incliné à 30°. Elle est **inscrite en dur
+dans `index.html`** (deux `<polyline>` en `currentColor`) : pas de requête, et
+la couleur suit celle du texte parent.
+
+Deux points à connaître avant d'y toucher :
+
+- **Le `viewBox` d'origine (`0 0 680 400`) est trompeur** : le tracé n'occupe
+  que 26 % de sa largeur et 54 % de sa hauteur. La version intégrée est recalée
+  sur l'encombrement réel, `0 0 207 245`. Réutiliser les points d'origine sans
+  ce recalage donne une marque minuscule et décentrée.
+- **Le trait de 8 unités est trop fin en petit** : il rendrait 0,63 px dans
+  l'en-tête. Le trait est donc épaissi selon l'usage — 20 dans l'en-tête (20 px
+  de haut), 16 sur la carte sociale, 34 dans le favicon. `logo.svg` conserve
+  le trait 8 d'origine, prévu pour les grands formats.
+
+**Le favicon n'utilise qu'un seul S.** Sous ~20 px les deux tracés fusionnent en
+un bloc illisible ; le S simple reste net jusqu'à 16 px. C'est une réduction
+propre au favicon — la marque complète reste dans l'en-tête, sur `og.png` et
+dans `logo.svg`. Pour revenir au double S, ajouter la seconde `polyline` dans le
+`data:` URI du `<link rel="icon">`.
 
 ## Accessibilité
 
