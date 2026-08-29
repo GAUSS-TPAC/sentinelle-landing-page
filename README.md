@@ -68,6 +68,32 @@ Le titre de l'onglet, la `meta description` et les `aria-label` suivent la bascu
 > référencement devient un objectif, il faudra scinder en `/fr/` et `/en/` avec
 > des `hreflang`.
 
+## Palette
+
+Théorie unique, en niveaux de gris (aucune teinte) — les jetons sont déclarés
+en tête de `<style>` :
+
+```
+--blanc  #FFFFFF   fond des bandes par défaut
+--nuage  #F4F4F5   fond des bandes alternées (.band--papier), surface des
+                   cartes sur fond blanc — l'alternance est volontairement
+                   discrète : 255,255,255 contre 244,244,245
+--brume  #E8E8EA   surface-2 (dots inactifs du graphique, fonds secondaires)
+--ardoise #6B6D74  texte-2 (secondaire, légendes)
+--suie   #313236   accent-texte / semantique (pastille « Prévu »)
+--encre  #17181B   texte principal
+--noir   #000000   accent fort : CTA, liens actifs, focus, surlignage
+```
+
+Contraste vérifié pour chaque paire (`--ardoise` sur `--nuage` : 4,70:1, le
+plus serré du lot ; tout le reste dépasse 11:1). Un seul thème, pas de variante
+sombre : `color-scheme:light` est fixé en dur, il n'y a rien à basculer selon
+les préférences du système.
+
+Pour réintroduire une couleur d'accent plus tard, il suffit de repointer
+`--accent` et `--accent-texte` dans `:root` — tous les composants (bouton,
+onglets actifs, liens, tableau) les consomment par le rôle, pas par la teinte.
+
 ## Logo
 
 La marque est un double S anguleux incliné à 30°. Elle est **inscrite en dur
@@ -99,7 +125,6 @@ dans `logo.svg`. Pour revenir au double S, ajouter la seconde `polyline` dans le
 - **Sans JavaScript, les quatre étapes du flux s'empilent** au lieu de disparaître.
   Les panneaux sont visibles dans le HTML ; c'est le script qui les replie.
 - Palette vérifiée : toutes les paires texte/fond passent WCAG AA (≥ 4,5:1).
-  Ne pas repasser `.btn:hover` en texte blanc — le blanc sur terracotta tombe à 3,35:1.
 
 ## Contenu réglementaire
 
