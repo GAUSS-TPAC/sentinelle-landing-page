@@ -1,15 +1,16 @@
 # Sentinelle — site vitrine
 
 Page unique, statique, sans dépendance ni build. Tout tient dans `index.html`
-(HTML + CSS + JS en ligne), plus `fonts/` (4 fichiers) et `og.png`.
+(HTML + CSS + JS en ligne), plus `fonts/`, `og.png` et `captures/`.
 **Aucune requête vers un tiers au chargement** : les polices sont auto-hébergées.
 
 ```
 index.html          la page entière
 fonts/*.woff2       Faustina, IBM Plex Sans, Martian Mono — 128 Ko au total
-og.png              carte de partage 1200×630
+og.png              carte de partage 1200×630 (noir/blanc)
 logo.svg            la marque, autonome et réutilisable (deck, presse)
 image/              masters du logo fournis (SVG exporté, PNG 2720px, composant React)
+captures/           2 maquettes d'écran affichées dans « Aperçu produit »
 ```
 
 ## À faire au déploiement
@@ -70,29 +71,59 @@ Le titre de l'onglet, la `meta description` et les `aria-label` suivent la bascu
 
 ## Palette
 
-Théorie unique, en niveaux de gris (aucune teinte) — les jetons sont déclarés
-en tête de `<style>` :
+Théorie unique, en niveaux de gris (aucune teinte) — fond noir dominant,
+dans l'esprit de palantir.com. Les jetons sont déclarés en tête de `<style>` :
 
 ```
---blanc  #FFFFFF   fond des bandes par défaut
---nuage  #F4F4F5   fond des bandes alternées (.band--papier), surface des
-                   cartes sur fond blanc — l'alternance est volontairement
-                   discrète : 255,255,255 contre 244,244,245
---brume  #E8E8EA   surface-2 (dots inactifs du graphique, fonds secondaires)
---ardoise #6B6D74  texte-2 (secondaire, légendes)
---suie   #313236   accent-texte / semantique (pastille « Prévu »)
---encre  #17181B   texte principal
---noir   #000000   accent fort : CTA, liens actifs, focus, surlignage
+--noir    #000000   fond des bandes par défaut, CTA au survol
+--suie    #0A0A0B   fond des bandes alternées (.band--papier) — l'alternance
+                    est volontairement discrète : 0,0,0 contre 10,10,11
+--carbone #1B1C1E   surface des cartes / fenêtres produit
+--fer     #2B2C2F   surface-2 (dots inactifs du graphique, fonds secondaires)
+--argent  #9A9CA2   texte-2 (secondaire, légendes)
+--brume   #D6D7DA   accent-texte / semantique (pastille « Prévu »)
+--blanc   #FFFFFF   texte principal, accent fort : CTA, liens actifs, focus
 ```
 
-Contraste vérifié pour chaque paire (`--ardoise` sur `--nuage` : 4,70:1, le
-plus serré du lot ; tout le reste dépasse 11:1). Un seul thème, pas de variante
-sombre : `color-scheme:light` est fixé en dur, il n'y a rien à basculer selon
+Contraste vérifié pour chaque paire (`--argent` sur `--suie` : 7,21:1, le plus
+serré du lot ; tout le reste dépasse 14:1). Un seul thème, pas de variante
+claire : `color-scheme:dark` est fixé en dur, il n'y a rien à basculer selon
 les préférences du système.
 
-Pour réintroduire une couleur d'accent plus tard, il suffit de repointer
-`--accent` et `--accent-texte` dans `:root` — tous les composants (bouton,
-onglets actifs, liens, tableau) les consomment par le rôle, pas par la teinte.
+Pour repasser en thème clair (l'inverse existait avant ce commit), il faut
+retourner chaque jeton ET les ~20 références directes à `--noir`/`--blanc`
+dans les composants (CTA, onglets actifs, liens, surlignage, dots du
+graphique — cf. l'historique git) : ce ne sont pas de simples alias, le sens
+de l'accent s'inverse avec le fond.
+
+## Carte CEMAC
+
+Le bloc « Zone couverte » (section « Le constat ») est une carte SVG inline
+des 6 États membres, Cameroun en évidence. **Les frontières sont projetées
+depuis de vraies données géographiques** (`world.geo.json`, projection
+équirectangulaire recentrée sur la zone, simplifiée par un algorithme de
+Douglas-Peucker) — pas dessinées à main levée. Le script de génération n'est
+pas conservé dans le dépôt ; si les tracés doivent être régénérés ou un autre
+pays ajouté, repartir d'une source de frontières publiques plutôt que de
+retoucher les `<path>` à la main.
+
+## Aperçu produit
+
+La section « Aperçu produit » (entre « Comment ça marche » et « Pourquoi
+l'IA ») affiche deux maquettes d'écran en `captures/` :
+
+```
+captures/apercu-graphe.png     graphe causal — 17 tickets reliés à une cause
+captures/apercu-registre.png   registre des motifs — table à 5 lignes
+```
+
+Ce sont des **maquettes construites pour l'occasion** (mêmes polices, mêmes
+jetons de couleur que le site, rendues via Chrome headless), pas des captures
+d'un produit en production — Sentinelle est en préfiguration, cf. plus bas.
+Chaque image porte sa propre mention « Maquette » / « données reconstituées »
+en légende, en plus du figcaption bilingue autour d'elle. Ne pas retirer ces
+mentions ni présenter ces images comme des captures réelles sans avoir
+d'abord un produit qui les justifie.
 
 ## Logo
 
