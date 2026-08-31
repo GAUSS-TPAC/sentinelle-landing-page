@@ -13,21 +13,31 @@ image/              masters du logo fournis (SVG exporté, PNG 2720px, composant
 captures/           2 maquettes d'écran affichées dans « Aperçu produit »
 ```
 
-## À faire au déploiement
+## Déploiement
 
-Une seule chose, mais elle est obligatoire : **remplacer `https://EXEMPLE.tld`
-par l'URL finale**. Elle apparaît 6 fois dans `index.html` (bloc signalé en tête
-de `<head>`, plus le JSON-LD).
+URL de production actuelle : **https://sentinelle-production-6f65.up.railway.app**
+— déjà en place dans `canonical`, `og:url`, `og:image`, `twitter:image` et le
+JSON-LD (5 lignes dans `index.html`).
+
+Si le domaine change (Railway attribue une URL différente, ou un domaine
+personnalisé est ajouté) :
 
 ```sh
-sed -i 's#https://EXEMPLE.tld#https://votre-domaine.tld#g' index.html
-grep -c 'EXEMPLE.tld' index.html   # doit retourner 0
+sed -i 's#https://sentinelle-production-6f65\.up\.railway\.app#https://nouveau-domaine.tld#g' index.html
+grep -c 'sentinelle-production-6f65' index.html   # doit retourner 0
 ```
 
-Sans ça : pas de `canonical`, et surtout **aucun aperçu au partage** — Slack,
-LinkedIn et WhatsApp ignorent une `og:image` en chemin relatif.
+Sans une URL absolue à jour : pas de `canonical` correct, et surtout **aucun
+aperçu au partage** — Slack, LinkedIn et WhatsApp ignorent une `og:image` en
+chemin relatif ou pointant vers une URL morte.
 
 ## Mettre en ligne
+
+**En production sur Railway** : https://sentinelle-production-6f65.up.railway.app
+— déployé depuis `main`, sert le dossier tel quel (site statique, aucune
+étape de build). Un `git push` sur `main` met à jour le déploiement.
+
+Autres options si besoin de basculer :
 
 **Netlify (glisser-déposer, ~2 min)**
 1. Ouvrir https://app.netlify.com/drop
@@ -41,7 +51,9 @@ LinkedIn et WhatsApp ignorent une `og:image` en chemin relatif.
 **GitHub Pages** : pousser ce dossier sur un dépôt, puis *Settings → Pages →
 Deploy from branch → main / (root)*.
 
-Vérifier l'aperçu social après coup sur https://www.opengraph.xyz/.
+En cas de bascule vers une autre plateforme, mettre à jour l'URL partout
+(cf. « Déploiement » ci-dessus) puis vérifier l'aperçu social sur
+https://www.opengraph.xyz/.
 
 ## Langues
 
